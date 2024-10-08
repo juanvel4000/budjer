@@ -1,0 +1,46 @@
+#!/bin/bash
+
+PROJECT="vl"
+ACTION=$1
+COMPILER="pyinstaller"
+FLAGS1="--onefile $PROJECT.py --distpath output/"
+OUTPUT_DIR="output"
+INSTALL_PATH="/usr/local/bin"
+
+build() {
+    # Create the output directory if it doesn't exist
+    mkdir -p $OUTPUT_DIR
+    # Build the project with pyinstaller
+    $COMPILER $FLAGS1 && echo "Build successful" || echo "Build failed"
+}
+
+clean() {
+    # Clean the build files
+    sudo rm -rf build *.spec __pycache__
+    echo "Cleaned build files"
+}
+
+install() {
+    # Ensure output file exists before trying to install
+    if [ -f "$OUTPUT_DIR/$PROJECT" ]; then
+        sudo cp "$OUTPUT_DIR/$PROJECT" $INSTALL_PATH/ && echo "Installed to $INSTALL_PATH" || echo "Installation failed"
+    else
+        echo "Build file not found. Please run build first."
+    fi
+}
+run() {
+    exec "$OUTPUT_DIR/$PROJECT"
+}
+if [ "$ACTION" == "build" ]; then
+    build
+elif [ "$ACTION" == "clean" ]; then
+    clean
+elif [ "$ACTION" == "install" ]; then
+    install
+elif [ "$ACTION" == "run" ]; then
+    run
+else
+    build
+    clean
+    install
+fi
